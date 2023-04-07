@@ -31,12 +31,13 @@ bright = Style.BRIGHT
 
 # Command list
 commands = [ 
-    [ "help", "shows this list" ],
-    [ "ssid", "searches wifi networks with a given ssid" ],
-    [ "bssid", "searches wifi networks with a given bssid" ],
-    [ "loc", "searches all wifi networks within a radius from a given location" ],
-    [ "opn", "searches open wifi networks within a radius from a given location" ],
-    [ "bye", "quits from doXles" ],
+    [ "help",   "shows this list" ],
+    [ "cls",    "clears the screen" ],
+    [ "ssid",   "searches wifi networks with a given ssid" ],
+    [ "bssid",  "searches wifi networks with a given bssid" ],
+    [ "loc",    "searches all wifi networks within a radius from a given location" ],
+    [ "opn",    "searches open wifi networks within a radius from a given location" ],
+    [ "bye",    "quits from doXles" ],
 ]
 
 # Prompt string
@@ -231,6 +232,22 @@ def loop():
     """
 
     while True:
-        p = input(prompt)
+        p = input(prompt).lower()
+        if p.startswith("help"):
+            show_help_menu()
+        elif p.startswith("cls"):
+            rconsole.clear()
+        elif p.startswith("ssid"):
+            try:
+                p = p.split(" ")
+                ssid_search(p[1])
+            except:
+                print(f"{red}Usage: ssid (wifi name){reset}")
+        elif p.startswith("bssid"):
+            try:
+                p = p.split(" ")
+                bssid_search(p[1])
+            except:
+                print(f"{red}Usage: bssid (wifi MAC address){reset}")
 
 loop()
