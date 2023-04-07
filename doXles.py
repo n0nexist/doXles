@@ -232,22 +232,61 @@ def loop():
     """
 
     while True:
-        p = input(prompt).lower()
-        if p.startswith("help"):
-            show_help_menu()
-        elif p.startswith("cls"):
-            rconsole.clear()
-        elif p.startswith("ssid"):
-            try:
-                p = p.split(" ")
-                ssid_search(p[1])
-            except:
-                print(f"{red}Usage: ssid (wifi name){reset}")
-        elif p.startswith("bssid"):
-            try:
-                p = p.split(" ")
-                bssid_search(p[1])
-            except:
-                print(f"{red}Usage: bssid (wifi MAC address){reset}")
+
+        try:
+
+            p = input(prompt).lower()
+
+            if p.startswith("help"):
+                show_help_menu()
+            
+            elif p.startswith("cls"):
+                rconsole.clear()
+            
+            elif p.startswith("ssid"):
+                try:
+                    p = p.split(" ")
+                    ssid_search(p[1])
+                except:
+                    print(f"{red}Usage: ssid (wifi name){reset}")
+            
+            elif p.startswith("bssid"):
+                try:
+                    p = p.split(" ")
+                    bssid_search(p[1])
+                except:
+                    print(f"{red}Usage: bssid (wifi MAC address){reset}")
+            
+            elif p.startswith("loc"):
+                try:
+                    p = p.split(" ")
+                    try:
+                        search_nearby_networks(p[1], p[2], p[3])
+                    except:
+                        search_nearby_networks(p[1], p[2])
+                except:
+                    print(f"{red}Usage: loc (wifi name){reset}")
+            
+            elif p.startswith("opn"):
+                try:
+                    p = p.split(" ")
+                    try:
+                        search_open_networks(p[1], p[2], p[3])
+                    except:
+                        search_open_networks(p[1], p[2])
+                except:
+                    print(f"{red}Usage: opn (wifi name){reset}")
+
+            elif p.startswith("bye"):
+                print(f"{red}Bye{reset}")
+                exit(1) # Exit code 1 - user input
+
+        except KeyboardInterrupt:
+            print(f"{red}Ctrl-C detected, exiting{reset}")
+            exit(2) # Exit code 2 - ctrl-c
+
+        except Exception as e:
+            print(f"{red}Python error - {e}{reset}")
+            exit(3) # Exit code 3 - python exception
 
 loop()
