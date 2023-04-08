@@ -11,6 +11,7 @@ from rich.console import Console
 import rich.box as box
 from colorama import Fore, Style, init
 import requests
+import readline
 import math
 
 # Initialize rich console
@@ -67,6 +68,37 @@ headers = {
     "Content-Type": "application/json"
 }
 
+def trim_token(tk):
+    """
+    Returns a string with the first 10 and 
+    last 10 characters of the token string,
+    used for printing said token in a private manner
+    parameters: tk
+    """
+
+    return f"{bright}{cyan}{tk[:10]}...{tk[-10:]}{reset}"
+
+def print_networks(network_list):
+    """ 
+    Prints a list of networks scraped using the WiGLE api,
+    with useful information such as name, mac address, location, encryption & more.
+    parameters: network_list
+    """
+
+    c = 0
+    for network in network_list:
+        c += 1
+        ssid = network["ssid"]
+        bssid = network["netid"]
+        latitude = network["trilat"]
+        longitude = network["trilong"]
+        road = network["road"]
+        city = network["city"]
+        country = network["country"]
+        channel = network["channel"]
+        encryption = network["encryption"]
+        print(f"{c}) {green}{ssid}{reset} ({cyan}{bssid}{reset}) -> {red}{latitude} {longitude} {reset}(\"{yellow}{road}{reset}\", {blue}{city}{reset}, {green}{country}{reset}) {encryption} CH:{channel}")
+
 def ssid_search(ssid_name):
     """ 
     Searches for an SSID (wifi name)
@@ -78,20 +110,8 @@ def ssid_search(ssid_name):
     if response.status_code == 200:
         data = response.json()
         if "results" in data:
-            print(f"Found {len(data['results'])} results.")
-            c = 0
-            for network in data["results"]:
-                c += 1
-                ssid = network["ssid"]
-                bssid = network["netid"]
-                latitude = network["trilat"]
-                longitude = network["trilong"]
-                road = network["road"]
-                city = network["city"]
-                country = network["country"]
-                encryption = network["encryption"]
-                channel = network["channel"]
-                print(f"{c}) {green}{ssid}{reset} ({cyan}{bssid}{reset}) -> {red}{latitude} {longitude} {reset}(\"{yellow}{road}{reset}\", {blue}{city}{reset}, {green}{country}{reset}) {encryption} CH:{channel}")
+            print(f"Found {len(data['results'])} results.{reset}")
+            print_networks(data["results"])
         else:
             print("No results found.")
     else:
@@ -108,20 +128,8 @@ def bssid_search(bssid_name):
     if response.status_code == 200:
         data = response.json()
         if "results" in data:
-            print(f"Found {len(data['results'])} results.")
-            c = 0
-            for network in data["results"]:
-                c += 1
-                ssid = network["ssid"]
-                bssid = network["netid"]
-                latitude = network["trilat"]
-                longitude = network["trilong"]
-                road = network["road"]
-                city = network["city"]
-                country = network["country"]
-                encryption = network["encryption"]
-                channel = network["channel"]
-                print(f"{c}) {green}{ssid}{reset} ({cyan}{bssid}{reset}) -> {red}{latitude} {longitude} {reset}(\"{yellow}{road}{reset}\", {blue}{city}{reset}, {green}{country}{reset}) {encryption} CH:{channel}")
+            print(f"Found {len(data['results'])} results.{reset}")
+            print_networks(data["results"])
         else:
             print("No results found.")
     else:
@@ -147,20 +155,8 @@ def search_nearby_networks(latitude, longitude, radius=100):
     if response.status_code == 200:
         data = response.json()
         if "results" in data:
-            print(f"Found {len(data['results'])} results.")
-            c = 0
-            for network in data["results"]:
-                c += 1
-                ssid = network["ssid"]
-                bssid = network["netid"]
-                latitude = network["trilat"]
-                longitude = network["trilong"]
-                road = network["road"]
-                city = network["city"]
-                country = network["country"]
-                encryption = network["encryption"]
-                channel = network["channel"]
-                print(f"{c}) {green}{ssid}{reset} ({cyan}{bssid}{reset}) -> {red}{latitude} {longitude} {reset}(\"{yellow}{road}{reset}\", {blue}{city}{reset}, {green}{country}{reset}) {encryption} CH:{channel}")
+            print(f"Found {len(data['results'])} results.{reset}")
+            print_networks(data["results"])
         else:
             print("No results found.")
     else:
@@ -173,6 +169,7 @@ def search_open_networks(latitude, longitude, radius=100):
     parameters: latitude (string) longitude (string) radius (int + optional)
     """
 
+    print(f"Searching for open wifi networks within {radius} meters of {latitude}/{longitude} ...")
     params = {
         "latrange1": latitude - radius/111319.9,
         "latrange2": latitude + radius/111319.9,
@@ -186,22 +183,11 @@ def search_open_networks(latitude, longitude, radius=100):
             open_networks = []
             for network in data["results"]:
                 encryption = network["encryption"]
-                if encryption == "":
+                if encryption == "" or encryption == "unknown":
                     open_networks.append(network)
             if len(open_networks) > 0:
-                print(f"Found {len(open_networks)} results.")
-                c = 0
-                for network in open_networks:
-                    c += 1
-                    ssid = network["ssid"]
-                    bssid = network["netid"]
-                    latitude = network["trilat"]
-                    longitude = network["trilong"]
-                    road = network["road"]
-                    city = network["city"]
-                    country = network["country"]
-                    channel = network["channel"]
-                    print(f"{c}) {green}{ssid}{reset} ({cyan}{bssid}{reset}) -> {red}{latitude} {longitude} {reset}(\"{yellow}{road}{reset}\", {blue}{city}{reset}, {green}{country}{reset}) {encryption} CH:{channel}")
+                print(f"Found {len(open_networks)} results.{reset}")
+                print_networks(open_networks)
             else:
                 print("No results found.")
         else:
@@ -230,6 +216,8 @@ def loop():
     and processes them
     parameters: none
     """
+
+    print(f"{reset}Logged in as {trim_token(api_token)}\n")
 
     while True:
 
@@ -261,21 +249,21 @@ def loop():
                 try:
                     p = p.split(" ")
                     try:
-                        search_nearby_networks(p[1], p[2], p[3])
+                        search_nearby_networks(float(p[1]), float(p[2]), int(p[3]))
                     except:
-                        search_nearby_networks(p[1], p[2])
+                        search_nearby_networks(float(p[1]), float(p[2]))
                 except:
-                    print(f"{red}Usage: loc (wifi name){reset}")
+                    print(f"{red}Usage: loc (latitude) (longitude) (radius [optional]){reset}")
             
             elif p.startswith("opn"):
                 try:
                     p = p.split(" ")
                     try:
-                        search_open_networks(p[1], p[2], p[3])
+                        search_open_networks(float(p[1]), float(p[2]), int(p[3]))
                     except:
-                        search_open_networks(p[1], p[2])
+                        search_open_networks(float(p[1]), float(p[2]))
                 except:
-                    print(f"{red}Usage: opn (wifi name){reset}")
+                    print(f"{red}Usage: opn (latitude) (longitude) (radius [optional]){reset}")
 
             elif p.startswith("bye"):
                 print(f"{red}Bye{reset}")
